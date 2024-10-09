@@ -22,11 +22,34 @@ def index():
     )
 
 
-@app.route('/demo_json')
-def demo_json():
-    pet_json = '{"id": 1, "name" : "Fido", "species" : "Dog"}'
-    return make_response(pet_json, 200)
+@app.route('/pets/<int:id>')
+def pet_by_id(id):
+    pet = Pet.query.filter(Pet.id == id).first()
 
+    if pet:
+        body = {'id': pet.id,
+                'name': pet.name,
+                'species': pet.species}
+        status = 200
+    else:
+        body = {'message': f'Pet {id} not found.'}
+        status = 404
+
+    return make_response(body, status)
+
+
+@app.route('/species/<string:species>')
+def pet_by_species(species):
+    # array to store a dictionary for each pet
+    
+    pet_dict = [{'id': pet.id,
+                    'name': pet.name,
+                    }for pet in Pet.query.filter_by(species=species).all()]
+    
+    body = {'count': len(pet_dict),
+            'pets': pet_dict
+            }
+    return make_response(body, 200)
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
